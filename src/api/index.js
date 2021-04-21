@@ -6,3 +6,5 @@ export const reqRegister = (user) => ajax("/register", user, "POST");
 export const reqLogin = (user) => ajax("/login", user, "POST");
 // 更新用户信息
 export const reqUpdateUser = (user) => ajax("/update", user, "POST");
+// 查看用户信息(根据 cookie)
+export const reqUser = () => ajax("/user");
