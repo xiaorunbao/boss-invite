@@ -4,7 +4,7 @@ import {
   RECEIVE_USER,
   RESET_USER,
 } from "./action-types";
-import { reqRegister, reqLogin, reqUpdateUser } from "../api";
+import { reqRegister, reqLogin, reqUpdateUser, reqUser } from "../api";
 
 // 同步错误消息
 const errorMsg = (msg) => ({ type: ERROR_MSG, data: msg });
@@ -66,6 +66,19 @@ export const updateUser = (user) => {
       dispatch(receiveUser(result.data));
     } else {
       // 失败
+      dispatch(resetUser(result.msg));
+    }
+  };
+};
+
+/*异步获取用户 */
+export const getUser = () => {
+  return async (dispatch) => {
+    const response = await reqUser();
+    const result = response.data;
+    if (result.code === 0) {
+      dispatch(receiveUser(result.data));
+    } else {
       dispatch(resetUser(result.msg));
     }
   };
