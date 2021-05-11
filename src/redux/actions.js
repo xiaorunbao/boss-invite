@@ -1,17 +1,23 @@
+import io from "socket.io-client";
 import {
-  AUTH_SUCCESS,
-  ERROR_MSG,
-  RECEIVE_USER,
-  RESET_USER,
-  RECEIVE_USER_LIST,
-} from "./action-types";
-import {
-  reqRegister,
+  reqChatMsgList,
   reqLogin,
+  reqReadChatMsg,
+  reqRegister,
   reqUpdateUser,
   reqUser,
   reqUserList,
 } from "../api";
+import {
+  AUTH_SUCCESS,
+  ERROR_MSG,
+  MSG_READ,
+  RECEIVE_MSG,
+  RECEIVE_MSG_LIST,
+  RECEIVE_USER,
+  RECEIVE_USER_LIST,
+  RESET_USER,
+} from "./action-types";
 
 // 同步错误消息
 const errorMsg = (msg) => ({ type: ERROR_MSG, data: msg });
@@ -100,6 +106,66 @@ export const getUserList = (type) => {
     const result = response.data;
     if (result.code === 0) {
       dispatch(receiveUserList(result.data));
+    }
+  };
+};
+
+// 接收消息列表的同步 action
+const receiveMsgList = ({ users, chatMsgs, userid }) => ({
+  type: RECEIVE_MSG_LIST,
+  data: { users, chatMsgs, userid },
+});
+// 接收消息的同步 action
+const receiveMsg = (chatMsg, isToMe) => ({
+  type: RECEIVE_MSG,
+  data: { chatMsg, isToMe },
+});
+// 读取了消息的同步 action
+const msgRead = ({ from, to, count }) => ({
+  type: MSG_READ,
+  data: { from, to, count },
+});
+
+/*初始化客户端 socketio 1. 连接服务器 2. 绑定用于接收服务器返回 chatMsg 的监听 */
+function initIO(dispatch, userid) {
+  if (!io.socket) {
+    io.socket = io("ws://localhost:4000");
+    io.socket.on("receiveMsg", (chatMsg) => {
+      if (chatMsg.from === userid || chatMsg.to === userid) {
+        dispatch(receiveMsg(chatMsg, chatMsg.to === userid));
+      }
+    });
+  }
+}
+
+/*获取当前用户相关的所有聊天消息列表 (在注册/登陆/获取用户信息成功后调用) */
+async function getMsgList(dispatch, userid) {
+  initIO(dispatch, userid);
+  const response = await reqChatMsgList();
+  const result = response.data;
+  if (result.code === 0) {
+    const { chatMsgs, users } = result.data;
+    dispatch(receiveMsgList({ chatMsgs, users, userid }));
+  }
+}
+
+/* 发送消息的异步 action */
+export const sendMsg = ({ from, to, content }) => {
+  return async (dispatch) => {
+    io.socket.emit("sendMsg", { from, to, content });
+  };
+};
+
+/*更新读取消息的异步 action */
+export const readMsg = (userid) => {
+  return async (dispatch, getState) => {
+    const response = await reqReadChatMsg(userid);
+    const result = response.data;
+    if (result.code === 0) {
+      const count = result.data;
+      const from = userid;
+      const to = getState().user._id;
+      dispatch(msgRead({ from, to, count }));
     }
   };
 };
