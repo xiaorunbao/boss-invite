@@ -1,8 +1,18 @@
 /*老板的主路由组件 */
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import { getUserList } from "../../redux/actions";
+import UserList from "../../components/user-list/user-list";
 
-export default class Laoban extends Component {
+class Laoban extends Component {
+  componentDidMount() {
+    this.props.getUserList("dashen");
+  }
+
   render() {
-    return <div>老板列表</div>;
+    return <UserList userList={this.props.userList}></UserList>;
   }
 }
+export default connect((state) => ({ userList: state.userList }), {
+  getUserList,
+})(Laoban);

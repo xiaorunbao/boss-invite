@@ -3,8 +3,15 @@ import {
   ERROR_MSG,
   RECEIVE_USER,
   RESET_USER,
+  RECEIVE_USER_LIST,
 } from "./action-types";
-import { reqRegister, reqLogin, reqUpdateUser, reqUser } from "../api";
+import {
+  reqRegister,
+  reqLogin,
+  reqUpdateUser,
+  reqUser,
+  reqUserList,
+} from "../api";
 
 // 同步错误消息
 const errorMsg = (msg) => ({ type: ERROR_MSG, data: msg });
@@ -80,6 +87,19 @@ export const getUser = () => {
       dispatch(receiveUser(result.data));
     } else {
       dispatch(resetUser(result.msg));
+    }
+  };
+};
+
+// 用户列表
+const receiveUserList = (users) => ({ type: RECEIVE_USER_LIST, data: users });
+// 异步获取用户列表
+export const getUserList = (type) => {
+  return async (dispatch) => {
+    const response = await reqUserList(type);
+    const result = response.data;
+    if (result.code === 0) {
+      dispatch(receiveUserList(result.data));
     }
   };
 };
