@@ -7,6 +7,7 @@ import Register from "./containers/register/register";
 import Main from "./containers/main/main";
 import store from "./redux/store";
 import "./index.css";
+import "./assets/css/index.less";
 import reportWebVitals from "./reportWebVitals";
 
 ReactDOM.render(
